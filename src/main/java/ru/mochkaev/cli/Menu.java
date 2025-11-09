@@ -1,4 +1,8 @@
 package ru.mochkaev.cli;
 
-public class Menu {
+final class Menu {
+    private Menu() {}
+    static void showWelcome() {
+
+    }
 }
