@@ -89,11 +89,14 @@ public class CatalogServiceImpl implements CatalogService {
     @Override
     public synchronized List<Product> search(SearchQuery q) {
         long start = System.nanoTime();
+
         CacheEntry ce = cache.get(q);
         long currentVersion = dataVersion.get();
         if (ce != null && ce.version == currentVersion) {
             metrics.cacheHits++;
-            return idsToProducts(ce.ids);
+            List<Product> hit = idsToProducts(ce.ids);
+            metrics.afterSearch(start);
+            return hit;
         }
         metrics.cacheMisses++;
 
@@ -113,7 +116,7 @@ public class CatalogServiceImpl implements CatalogService {
         List<Long> ids = filtered.stream().map(p -> p.id).collect(Collectors.toList());
         cache.put(q, new CacheEntry(currentVersion, ids));
 
-        long tookMicros = (System.nanoTime() - start) / 1000;
+        metrics.afterSearch(start);
         return filtered;
     }
 
@@ -194,19 +197,39 @@ public class CatalogServiceImpl implements CatalogService {
         private long cacheHits;
         private long cacheMisses;
 
+        // NEW:
+        private long searchCount;
+        private long lastSearchMicros;
+        private long totalSearchMicros;
+
         @Override public long productCount() { return lastProductCount; }
         @Override public long crudOps() { return crudOps; }
         @Override public long cacheHits() { return cacheHits; }
         @Override public long cacheMisses() { return cacheMisses; }
+        @Override public long searchCount() { return searchCount; }
+        @Override public long lastSearchMicros() { return lastSearchMicros; }
+        @Override public double avgSearchMicros() {
+            return searchCount == 0 ? 0.0 : (double) totalSearchMicros / searchCount;
+        }
 
         private long lastProductCount;
+
         Metrics snapshot(long productCountNow) {
             MetricsImpl m = new MetricsImpl();
             m.crudOps = this.crudOps;
             m.cacheHits = this.cacheHits;
             m.cacheMisses = this.cacheMisses;
+            m.searchCount = this.searchCount;
+            m.lastSearchMicros = this.lastSearchMicros;
+            m.totalSearchMicros = this.totalSearchMicros;
             m.lastProductCount = productCountNow;
             return m;
+        }
+
+        void afterSearch(long startNanos) {
+            searchCount++;
+            lastSearchMicros = (System.nanoTime() - startNanos) / 1000;
+            totalSearchMicros += lastSearchMicros;
         }
     }
 }

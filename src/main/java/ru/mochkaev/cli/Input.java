@@ -96,8 +96,6 @@ public final class Input {
         return Optional.empty();
     }
 
-    // "k=v;size=M;color=red"  -> Map
-    // пустая строка -> null (не менять); "-" -> пустая Map (очистить)
     public static Map<String,String> readAttributes(Scanner sc, String label) {
         System.out.print(label + ": ");
         String line = sc.nextLine().trim();
@@ -110,5 +108,15 @@ public final class Input {
             if (kv.length == 2) map.put(kv[0].trim(), kv[1].trim());
         }
         return map;
+    }
+
+    public static boolean readYesNo(Scanner sc, String label) {
+        while (true) {
+            System.out.print(label + " (y/n): ");
+            String s = sc.nextLine().trim().toLowerCase();
+            if (s.startsWith("y") || s.equals("да")) return true;
+            if (s.startsWith("n") || s.equals("нет")) return false;
+            System.out.println("Ожидалось y или n.");
+        }
     }
 }

@@ -128,6 +128,10 @@ public class ConsoleApp {
 
     private void doDelete(String actor) {
         long id = Input.readLong(sc, "ID товара", 1, Long.MAX_VALUE, -1);
+        if (!Input.readYesNo(sc, "Подтвердите удаление #" + id)) {
+            System.out.println("Отменено.");
+            return;
+        }
         boolean ok = catalog.delete(id, actor);
         System.out.println(ok ? "Удалено." : "Не найдено.");
     }
@@ -167,7 +171,10 @@ public class ConsoleApp {
         CatalogService.Metrics m = catalog.metrics();
         System.out.println("Products: " + m.productCount());
         System.out.println("CRUD ops: " + m.crudOps());
-        System.out.println("Cache hits: " + m.cacheHits() + ", misses: " + m.cacheMisses());
+        System.out.println("Cache: hits=" + m.cacheHits() + ", misses=" + m.cacheMisses());
+        System.out.println("Search: count=" + m.searchCount()
+                + ", last=" + m.lastSearchMicros() + " µs"
+                + ", avg=" + String.format("%.1f", m.avgSearchMicros()) + " µs");
     }
 
     private void doAudit() {

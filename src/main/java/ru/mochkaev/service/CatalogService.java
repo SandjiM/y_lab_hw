@@ -18,6 +18,10 @@ public interface CatalogService {
         long crudOps();
         long cacheHits();
         long cacheMisses();
+
+        long searchCount();
+        long lastSearchMicros();
+        double avgSearchMicros();
     }
     Metrics metrics();
 }
