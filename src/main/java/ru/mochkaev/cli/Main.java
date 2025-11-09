@@ -1,4 +1,4 @@
-package ru.mochkaev;
+package ru.mochkaev.cli;
 
 public class Main {
     public static void main(String[] args) {
