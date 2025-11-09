@@ -3,15 +3,22 @@ package ru.mochkaev.service.impl;
 import ru.mochkaev.domain.AuditEvent;
 import ru.mochkaev.repository.AuditRepository;
 import ru.mochkaev.service.AuditService;
+import ru.mochkaev.storage.AuditFileStorage;
 
 import java.util.List;
 import java.util.Objects;
 
 public class AuditServiceImpl implements AuditService {
     private final AuditRepository repo;
+    private final AuditFileStorage fileStorage;
 
     public AuditServiceImpl(AuditRepository repo) {
+        this(repo, null);
+    }
+
+    public AuditServiceImpl(AuditRepository repo, AuditFileStorage fileStorage) {
         this.repo = Objects.requireNonNull(repo);
+        this.fileStorage = fileStorage;
     }
 
     @Override
@@ -22,6 +29,7 @@ public class AuditServiceImpl implements AuditService {
         e.action = action;
         e.details = details;
         repo.append(e);
+        if (fileStorage != null) fileStorage.append(e);
     }
 
     @Override

@@ -5,6 +5,7 @@ import ru.mochkaev.domain.SearchQuery;
 import ru.mochkaev.repository.ProductRepository;
 import ru.mochkaev.service.AuditService;
 import ru.mochkaev.service.CatalogService;
+import ru.mochkaev.storage.ProductPersistence;
 import ru.mochkaev.util.IdGenerator;
 import ru.mochkaev.util.LruCache;
 
@@ -21,9 +22,16 @@ public class CatalogServiceImpl implements CatalogService {
 
     private final MetricsImpl metrics = new MetricsImpl();
 
+    private final ProductPersistence persister;
+
     public CatalogServiceImpl(ProductRepository repo, AuditService audit) {
+        this(repo, audit, null);
+    }
+
+    public CatalogServiceImpl(ProductRepository repo, AuditService audit, ProductPersistence persister) {
         this.repo = Objects.requireNonNull(repo);
         this.audit = Objects.requireNonNull(audit);
+        this.persister = persister;
     }
 
     @Override
@@ -70,6 +78,12 @@ public class CatalogServiceImpl implements CatalogService {
             audit.log(actor, "DELETE_PRODUCT", "id=" + id);
         }
         return ok;
+    }
+
+    private void persistNow() {
+        if (persister != null) {
+            persister.saveAll(repo.findAll());
+        }
     }
 
     @Override
